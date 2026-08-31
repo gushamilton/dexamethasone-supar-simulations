@@ -202,23 +202,7 @@ bottom <- (panel_c | panel_d) + plot_layout(guides = "collect") &
   theme(legend.position = "bottom")
 
 figure <- (top / bottom) +
-  plot_layout(heights = c(1, 1.12)) +
-  plot_annotation(
-    caption = stringr::str_wrap(paste0(
-      "A, power by true AUC reduction and contributing N (recruit 90; conservative analysis basis N=80 after allowing five lost to follow-up/arm). ",
-      "B, model-based AUC versus Day-3 ANCOVA under focused Day-3 loss at a true 20% AUC reduction. ",
-      "C, power and D, Type-I error for historical mean-borrowing sensitivities across historical-current post-baseline control differences; baseline matched. ",
-      "Primary decision: P(Delta<0 | data)>=0.95, Delta=log(AUC dexamethasone/AUC control); common post-baseline treatment prior N(0,1^2). ",
-      "Historical borrowing uses observed pilot Days 0, 1 and 3 only; projected Day 5 is not borrowed. Immediate sustained effect; known-covariance Gaussian design approximation. ",
-      "Monte Carlo replicates/cell: A=", scales::comma(unique(power_n$n_sim)),
-      ", B=", scales::comma(unique(missingness$n_sim)),
-      ", C/D=", scales::comma(unique(borrowing$n_sim)),
-      ". Dotted lines denote 80% power or 5% Type-I error."
-    ), width = 205),
-    theme = theme(
-      plot.caption = element_text(size = 8.0, colour = "grey35", hjust = 0)
-    )
-  )
+  plot_layout(heights = c(1, 1.12))
 
 ggsave(
   "figures/stage2_final_four_panel.png",
