@@ -26,8 +26,8 @@ stopifnot(
 theme_stage2 <- function() {
   theme_bw(base_size = 10.5) +
     theme(
-      plot.title = element_text(face = "bold", size = 12),
-      plot.subtitle = element_text(size = 9.3, colour = "grey30"),
+      plot.tag = element_text(face = "bold", size = 12),
+      plot.tag.position = c(.01, .99),
       panel.grid.minor = element_blank(),
       panel.grid.major = element_line(colour = "grey90", linewidth = .35),
       legend.text = element_text(size = 7.9),
@@ -65,8 +65,7 @@ panel_a <- power_n |>
   scale_x_continuous(breaks = seq(60, 90, 10)) +
   scale_y_continuous(labels = scales::label_percent(accuracy = 1)) +
   labs(
-    title = "A. Power by treatment effect and contributing N",
-    subtitle = "Recruitment fixed at N=90; allow five lost to follow-up per arm",
+    tag = "A",
     x = "Participants contributing suPAR data (total N)",
     y = "Bayesian power",
     colour = "True AUC reduction"
@@ -111,8 +110,7 @@ panel_b <- missingness |>
   scale_x_continuous(breaks = seq(0, 50, 10), limits = c(0, 52)) +
   scale_y_continuous(labels = scales::label_percent(accuracy = 1)) +
   labs(
-    title = "B. Model-based AUC versus Day-3 ANCOVA",
-    subtitle = "20% AUC reduction; conservative contributing N = 80; focused Day-3 loss",
+    tag = "B",
     x = "Achieved Day-3 missingness (%)",
     y = "Bayesian power",
     colour = "Missingness",
@@ -168,8 +166,7 @@ panel_c <- borrowing_plot |>
   scale_x_continuous(breaks = seq(-20, 20, 10)) +
   scale_y_continuous(labels = scales::label_percent(accuracy = 1)) +
   labs(
-    title = "C. Power with historical mean-borrowing sensitivities",
-    subtitle = "True 20% AUC reduction; pilot Days 0, 1 and 3 only; baseline matched",
+    tag = "C",
     x = "Current post-baseline control trajectory vs historical (%)",
     y = "Bayesian power",
     colour = "Analysis",
@@ -192,8 +189,7 @@ panel_d <- borrowing_plot |>
     labels = scales::label_percent(accuracy = 1)
   ) +
   labs(
-    title = "D. Type-I error under historical-current differences",
-    subtitle = "No treatment effect; pilot Days 0, 1 and 3 only; baseline matched",
+    tag = "D",
     x = "Current post-baseline control trajectory vs historical (%)",
     y = "Type-I error",
     colour = "Analysis",
@@ -208,23 +204,19 @@ bottom <- (panel_c | panel_d) + plot_layout(guides = "collect") &
 figure <- (top / bottom) +
   plot_layout(heights = c(1, 1.12)) +
   plot_annotation(
-    title = "Dexamethasone-suPAR trial: operating characteristics supporting the primary analysis",
-    subtitle = paste0(
-      "Primary decision: P(Delta < 0 | data) >= 0.95, Delta = log(AUC dexamethasone/AUC control); ",
-      "common post-baseline treatment-effect prior N(0, 1^2); recruit N=90, with conservative contributing N=80"
-    ),
     caption = stringr::str_wrap(paste0(
-      "Panel A: ", scales::comma(unique(power_n$n_sim)),
-      " simulations/cell. Panel B: ", scales::comma(unique(missingness$n_sim)),
-      " paired simulations/cell. Panels C/D: ",
-      scales::comma(unique(borrowing$n_sim)),
-      " paired simulations/scenario. Every simulated positive decision applies the stated 0.95 posterior-probability rule. Historical mean borrowing uses observed pilot Days 0, 1 and 3 only; projected Day 5 is not borrowed. Known-covariance Gaussian design approximation using pilot Day 0-3 data and a prespecified Day-5 projection. ",
-      "Immediate sustained effect. Dotted lines denote 80% power or 5% Type-I error."
-    ), width = 185),
+      "A, power by true AUC reduction and contributing N (recruit 90; conservative analysis basis N=80 after allowing five lost to follow-up/arm). ",
+      "B, model-based AUC versus Day-3 ANCOVA under focused Day-3 loss at a true 20% AUC reduction. ",
+      "C, power and D, Type-I error for historical mean-borrowing sensitivities across historical-current post-baseline control differences; baseline matched. ",
+      "Primary decision: P(Delta<0 | data)>=0.95, Delta=log(AUC dexamethasone/AUC control); common post-baseline treatment prior N(0,1^2). ",
+      "Historical borrowing uses observed pilot Days 0, 1 and 3 only; projected Day 5 is not borrowed. Immediate sustained effect; known-covariance Gaussian design approximation. ",
+      "Monte Carlo replicates/cell: A=", scales::comma(unique(power_n$n_sim)),
+      ", B=", scales::comma(unique(missingness$n_sim)),
+      ", C/D=", scales::comma(unique(borrowing$n_sim)),
+      ". Dotted lines denote 80% power or 5% Type-I error."
+    ), width = 205),
     theme = theme(
-      plot.title = element_text(face = "bold", size = 17),
-      plot.subtitle = element_text(size = 10.5),
-      plot.caption = element_text(size = 8.2, colour = "grey35", hjust = 0)
+      plot.caption = element_text(size = 8.0, colour = "grey35", hjust = 0)
     )
   )
 
