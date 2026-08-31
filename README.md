@@ -42,7 +42,7 @@ Panel A uses 10,000 simulations per cell. Panel B uses 5,000 paired simulations
 per cell. Seeds are fixed in the script. At 80% power, the Monte Carlo standard
 error is approximately 0.6 percentage points for Panel B.
 
-Earlier scripts in `scripts/` reproduce the historical-mean borrowing,
-nuisance-prior, prior-conflict, missingness and UK-Kenya sensitivity analyses.
-The rationale and outline SAP are in
+The 20,000-replicate historical-mean sensitivity is reproduced by
+`scripts/21_stage2_borrowing_sensitivity.R`. The assumptions register and
+outline SAP are in [`docs/simulation_plan.md`](docs/simulation_plan.md) and
 [`docs/stage2_primary_analysis_and_sap.md`](docs/stage2_primary_analysis_and_sap.md).

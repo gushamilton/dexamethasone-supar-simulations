@@ -1,41 +1,29 @@
 # Simulation plan and assumptions register
 
-## 1. Trial objective and estimand
+## 1. Primary estimand and decision rule
 
-The primary mechanistic question is whether dexamethasone reduces cumulative
-pleural-fluid suPAR over time. The candidate primary estimand is the ratio of
-model-estimated, time-standardised AUC between treatment and control over Days
-0--3:
+The primary mechanistic estimand is the ratio of model-based pleural-fluid
+suPAR AUCs from Day 0 to Day 5:
 
 \[
-R_{AUC} = \frac{AUC_{Tx}}{AUC_{Ctrl}}.
+R_{AUC}=AUC_{dexamethasone}/AUC_{control}, \qquad
+\Delta=\log(R_{AUC}).
 \]
 
-Values below 1 favour dexamethasone. An AUC ratio of 0.80 represents a 20%
-reduction in cumulative suPAR burden. A Days 0--5 estimand is a sensitivity
-analysis until Day-5 availability and covariance assumptions are supported.
-
-The treatment effect is
+Values below 1 favour dexamethasone. The primary success rule is
 
 \[
-\Delta = \log(R_{AUC}).
+P(\Delta<0\mid data)\ge 0.95.
 \]
 
-The primary Bayesian success rule to calibrate is
-
-\[
-P(\Delta < 0 \mid data) \ge c,
-\]
-
-where `c = 0.95` for the primary rule. Thresholds of 0.90 and 0.975 are
-sensitivity analyses. The
-clinically relevant probability `P(Delta <= log(0.80) | data)` will be reported
-separately and is not a competing primary rule.
+The posterior probability of at least a 20% reduction,
+`P(Delta <= log(0.80) | data)`, will also be reported. Probability cut-offs of
+0.90 and 0.975 are sensitivity analyses.
 
 ## 2. Historical information
 
-The historical cohort contains 29 complete Day 0, Day 1 and Day 3 trajectories.
-On the natural-log scale:
+The historical cohort contains 29 complete Day 0, Day 1 and Day 3
+trajectories. On the natural-log scale:
 
 | Quantity | Estimate |
 |---|---:|
@@ -51,146 +39,87 @@ On the natural-log scale:
 | SD log individual sAUC 0--3 | 0.5945 |
 | Correlation baseline--log sAUC | 0.7474 |
 
-These estimates are uncertain and are not treated as known truths. Variance and
-correlation sensitivity scenarios are required.
+The Stage 2 schedule includes Day 5, but the pilot does not. In the main
+design simulation, Day 5 is projected to have the Day-3 mean and marginal SD
+and correlation 0.80 with Day 3. This is an explicit design assumption rather
+than an observed pilot estimate.
 
 ## 3. Prior specification
 
-The historical cohort contains no randomized dexamethasone comparison. It must
-not inform the treatment-effect prior.
+The historical cohort contains no randomised dexamethasone comparison and does
+not provide prior evidence for treatment efficacy.
 
-The initial treatment prior is:
+- Each post-baseline log-scale treatment coefficient has prior
+  `Normal(0, 0.5^2)`.
+- The treatment difference is constrained to zero at baseline.
+- Concurrent randomised controls estimate the control trajectory. The primary
+  analysis does not borrow the historical control mean.
+- Standard deviations have pilot-centred log-Normal priors with log-scale SD
+  0.5.
+- Correlation and baseline-association parameters have pilot-centred Normal
+  priors on Fisher-z or otherwise unconstrained scales with SD 0.5.
+- Centred control-trajectory coefficients have weak `Normal(0, 2^2)` priors.
 
-\[
-\Delta \sim N(0, 0.50^2),
-\]
+Historical control-mean borrowing is a sensitivity analysis only. The selected
+robust mixture has 90% weak and 10% pilot-informed components, with the
+informative component capped at effective sample size 5. Fixed power-prior
+weights `a0 = 0.2, 0.4, 0.6` provide further sensitivities.
 
-with prior-SD sensitivity values 0.25 and 0.50.
+## 4. Longitudinal analysis model
 
-Historical borrowing is restricted to selected control-trajectory or nuisance
-parameters. The preferred primary implementation is a robust mixture containing
-25% historical and 75% weakly informative components:
+The intended primary analysis is a Bayesian log-normal longitudinal
+mixed-effects model using actual elapsed sampling time. The mean trajectory is
+represented flexibly at Days 0, 1, 3 and 5, with treatment-by-time effects
+constrained to zero at baseline, site adjustment and a participant random
+intercept. A parsimonious continuous-time correlation structure accounts for
+within-participant dependence.
 
-- historical component capped at effective sample size (ESS) 10;
-- weakly informative component carrying 75% initial prior weight;
-- posterior mixture weight and posterior ESS reported;
-- borrowing diminished when concurrent controls conflict with history.
-
-Fixed power-prior weights `a0 = 0, 0.2, 0.4, 0.6` are sensitivity analyses.
-For historical N=29 their nominal ESS values are 0, 5.8, 11.6 and 17.4.
-
-If the historical participants are UK-derived, historical control means are
-borrowed only into the UK control component. Kenyan control means are learned
-from concurrent Kenyan participants. Variance/correlation borrowing across
-countries is evaluated by sensitivity analysis rather than assumed.
-
-## 4. Longitudinal model
-
-The intended primary model is a Bayesian log-normal longitudinal mixed model
-using actual elapsed sampling time. The initial mean model is piecewise linear
-with knots at Days 1 and 3, treatment-by-time effects constrained to zero at
-baseline, site/country intercept adjustment and a participant random intercept.
-
-A random slope or continuous-time residual process will be added only if model
-diagnostics and simulations show it is estimable with N=90.
-
-Posterior marginal mean trajectories are integrated to obtain the AUC ratio.
-An individual complete-case trapezoidal AUC is not the intended primary
-analysis.
+Posterior marginal mean trajectories are integrated over Day 0--5 to obtain
+the AUC ratio. An individual complete-case trapezoidal AUC is not the intended
+primary analysis.
 
 ## 5. Missingness and intercurrent events
 
-AUC does not itself solve missingness. The primary longitudinal model relies on
-MAR conditional on observed outcomes and included covariates. Reasons for every
-absent sample should be recorded, including:
+AUC does not itself solve missingness. The joint longitudinal likelihood uses
+all observed samples and integrates over unobserved outcomes under missing at
+random conditional on included predictors and observed outcomes. A separate
+imputation of the primary outcome is not required.
 
-- logistical omission;
-- blocked drain;
-- drain removal after improvement;
-- discharge;
-- rescue fibrinolysis or surgery;
-- deterioration, withdrawal or death.
+Reasons for absent samples will distinguish logistical omission, blocked or
+removed drains, discharge, rescue fibrinolysis, surgery, deterioration,
+withdrawal and death. Delta-adjusted pattern-mixture analyses will assess
+clinically plausible departures from missing at random.
 
-Drain removal, surgery and death may be intercurrent or structural events rather
-than ordinary missing values. The clinical meaning of suPAR after these events
-must be agreed before the final estimand is fixed.
+Panel B examines loss of the Day-3 sample under MCAR, MAR after improvement and
+MAR after deterioration, from 0% to 50%. Days 0, 1 and 5 are retained in this
+focused comparison with Day-3 ANCOVA.
 
-Simulation scenarios:
+## 6. Main operating-characteristic scenarios
 
-- complete follow-up;
-- MCAR 10%, 20%, 30%, 40%, 50%;
-- MAR after improvement;
-- MAR after deterioration/rescue;
-- differential missingness by treatment;
-- informative sampling intensity (odds ratio 1.5 or 2.0 per latent-SD);
-- MNAR delta shifts of -0.50, -0.25, +0.25, +0.50 residual SD;
-- structural observation termination at 10%, 20%, 30%.
+- total randomised N: 60, 70, 80, 90 and 100;
+- true Day 0--5 AUC reduction: 0%, 15%, 20%, 25% and 30%;
+- immediate sustained treatment effect, never applied at baseline;
+- decision cut-off 0.95;
+- 10,000 simulations per Panel A cell;
+- 5,000 paired simulations per Panel B cell.
 
-The primary MNAR sensitivity analysis is a delta-adjusted pattern-mixture model.
+The final historical-mean sensitivity uses 20,000 simulations per cell, control
+mean differences of -20%, 0% and +20%, and true reductions of 0% and 20%.
 
-## 6. Data-generating scenarios
+## 7. Planned displays
 
-### Sample size and treatment effect
+The application figure contains two panels:
 
-- total N: 60, 70, 80, 90, 100, 120;
-- true AUC reduction: 0%, 15%, 20%, 25%, 30%, 35%, 40%;
-- immediate sustained, delayed and waning treatment shapes;
-- treatment is never applied at baseline.
+1. power versus total randomised N for 15%, 20%, 25% and 30% AUC reductions;
+2. model-based AUC versus Day-3 ANCOVA under MCAR and two MAR mechanisms, with
+   Day-3 missingness up to 50%.
 
-### Control distribution
+Prior and historical-borrowing results are reported in text because their
+effects were small and do not justify additional application panels.
 
-- pilot covariance with variance multipliers 0.75, 1.00, 1.25 and 1.50;
-- weak, moderate and pilot-like correlation structures;
-- historical-to-current control drift from -30% to +30%;
-- Day-5 mean: continued decline, plateau or rebound;
-- Day-5 SD: 0.65, 0.75, 0.85.
+## 8. Reproducibility
 
-### UK and Kenya
-
-- country allocation 50:50 and 70:30;
-- country control shifts 0, 0.3 and 0.6 residual SD;
-- Kenya:UK residual-SD ratios 1.0, 1.25 and 1.5;
-- homogeneous treatment ratios 0.80/0.80 and 0.70/0.70;
-- modest HTE 0.70/0.85;
-- strong HTE 0.70/1.00;
-- qualitative reverse-direction stress test.
-
-The overall effect is primary. Treatment-by-country HTE is exploratory. With
-approximately 22--23 participants per treatment-country cell, the study cannot
-reliably rule in or rule out clinically important HTE.
-
-## 7. Operating characteristics
-
-For every scenario report:
-
-- Bayesian assurance: probability of satisfying the primary rule;
-- false-positive probability under no treatment effect;
-- probability of satisfying the 20% clinically relevant rule;
-- bias and RMSE of the posterior effect;
-- 95% credible-interval coverage and width;
-- model convergence/fitting failure;
-- prior/posterior mixture weight and borrowed ESS;
-- probability that borrowing changes the go/no-go decision;
-- Monte Carlo standard error.
-
-## 8. Planned displays
-
-The main four-panel figure contains:
-
-1. power versus sample size, by true AUC reduction;
-2. model-based AUC versus Day-3 ANCOVA under three missingness mechanisms;
-3. power with no borrowing versus the selected robust mixture;
-4. type-I error and power versus historical-current control conflict.
-
-UK/Kenya HTE will be a supplementary display showing country-specific posterior
-intervals and what N=90 can and cannot learn.
-
-## 9. Decisions still requiring clinical agreement
-
-1. Is Days 0--3 or Days 0--5 the clinically meaningful primary window?
-2. What is the estimand after drain removal following improvement?
-3. What is the estimand after rescue fibrinolysis, surgery or death?
-4. Is the historical cohort wholly UK-derived and otherwise comparable to the
-   proposed trial controls?
-5. Which variables defining aetiology and care pathway will be measured
-   consistently in the UK and Kenya?
+The final scripts use fixed seeds and save cell-level results with Monte Carlo
+standard errors. Tests check positive definiteness, exact effect calibration,
+no treatment effect at baseline, recovery under large samples and successful
+analysis with missing Day-3 data.
