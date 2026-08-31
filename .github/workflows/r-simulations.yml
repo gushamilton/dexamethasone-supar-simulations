@@ -1,0 +1,75 @@
+name: R simulation checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      full_run:
+        description: Run the full operating-characteristic simulation
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  simulate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.4.3'
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          cache-version: 1
+
+      - name: Run unit tests
+        run: |
+          for test_file in tests/test_*.R; do
+            Rscript "$test_file"
+          done
+
+      - name: Select Monte Carlo size
+        id: size
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.full_run }}" == "true" ]]; then
+            echo "a=20000" >> "$GITHUB_OUTPUT"
+            echo "b=10000" >> "$GITHUB_OUTPUT"
+            echo "cd=20000" >> "$GITHUB_OUTPUT"
+          else
+            echo "a=500" >> "$GITHUB_OUTPUT"
+            echo "b=100" >> "$GITHUB_OUTPUT"
+            echo "cd=1000" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run simulations and build figure
+        env:
+          N_SIM_PANEL_A: ${{ steps.size.outputs.a }}
+          N_SIM_PANEL_B: ${{ steps.size.outputs.b }}
+          N_SIM: ${{ steps.size.outputs.cd }}
+          RERUN_DAY5_MISSINGNESS: '1'
+        run: |
+          Rscript scripts/20_stage2_day5_two_panel.R
+          Rscript scripts/23_borrowing_approaches_type1_power.R
+          Rscript scripts/25_stage2_final_four_panel.R
+
+      - name: Validate generated outputs
+        env:
+          EXPECTED_A: ${{ steps.size.outputs.a }}
+          EXPECTED_B: ${{ steps.size.outputs.b }}
+          EXPECTED_CD: ${{ steps.size.outputs.cd }}
+        run: Rscript scripts/26_validate_outputs.R
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: simulation-results-${{ github.run_id }}
+          path: |
+            outputs/stage2_day5_panel_a_power.csv
+            outputs/stage2_day5_panel_b_missingness.csv
+            outputs/borrowing_approaches_type1_power.csv
+            figures/stage2_final_four_panel.png
+            figures/stage2_final_four_panel.pdf

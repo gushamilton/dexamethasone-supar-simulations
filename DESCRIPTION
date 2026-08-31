@@ -1,0 +1,15 @@
+Package: dexamethasonesuparsimulations
+Type: Project
+Title: Design Simulations for the Dexamethasone suPAR Trial
+Version: 0.1.0
+Authors@R: person("Trial", "Team", role = c("aut", "cre"), email = "noreply@example.org")
+Description: Reproducible design-stage operating-characteristic simulations
+    for a Bayesian longitudinal suPAR AUC analysis.
+License: MIT
+Encoding: UTF-8
+Depends: R (>= 4.3)
+Imports:
+    MASS,
+    Matrix,
+    patchwork,
+    tidyverse

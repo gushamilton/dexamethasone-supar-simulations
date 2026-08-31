@@ -4,7 +4,7 @@ library(MASS)
 #
 # Days 0, 1 and 3 are taken directly from the n = 29 pilot cohort. The Stage 2
 # schedule adds Day 5. As no pilot Day 5 sample is available, Day 5 is projected
-# conservatively to have the same mean and marginal SD as Day 3 and correlation
+# to have the same mean and marginal SD as Day 3 and prespecified correlation
 # 0.80 with Day 3. Covariances with earlier measurements follow from the
 # corresponding first-order conditional extension, which guarantees a positive
 # definite covariance matrix.
@@ -51,7 +51,7 @@ standardised_auc_day5 <- function(log_means, times = pilot_day5$times) {
 
 log_auc_delta_day5 <- function(beta) {
   control <- beta[1:4]
-  treatment <- control + c(0, beta[5:7])
+  treatment <- control + c(0, rep(beta[5], 3))
   log(standardised_auc_day5(treatment)) -
     log(standardised_auc_day5(control))
 }
@@ -144,76 +144,85 @@ simulate_day5_trial <- function(
     observed[, 3] <- runif(n) > probability_day3_missing
   }
 
-  long <- do.call(rbind, lapply(seq_len(n), function(index) {
-    data.frame(
-      id = index,
-      treatment = treatment[index],
-      time_index = 1:4,
-      time = pilot_day5$times,
-      log_supar = values[index, ],
-      observed = observed[index, ]
-    )
-  }))
-  attr(long, "true_delta") <- log_auc_delta_day5(
-    c(pilot_day5$mean, treatment_shift[2:4])
+  long <- data.frame(
+    id = rep(seq_len(n), each = 4),
+    treatment = rep(treatment, each = 4),
+    time_index = rep(1:4, times = n),
+    time = rep(pilot_day5$times, times = n),
+    log_supar = as.vector(t(values)),
+    observed = as.vector(t(observed))
   )
+  attr(long, "true_delta") <-
+    log(standardised_auc_day5(pilot_day5$mean + treatment_shift)) -
+      log(standardised_auc_day5(pilot_day5$mean))
   long
 }
 
-make_day5_prior <- function(treatment_prior_sd = 0.50) {
+make_day5_prior <- function(treatment_prior_sd = 1.00) {
   list(
-    mean = c(pilot_day5$mean, 0, 0, 0),
-    covariance = diag(c(rep(2.00, 4), rep(treatment_prior_sd, 3))^2)
+    mean = c(pilot_day5$mean, 0),
+    covariance = diag(c(rep(2.00, 4), treatment_prior_sd)^2)
   )
 }
 
 fit_day5_auc_bayes <- function(
     long_data,
-    treatment_prior_sd = 0.50,
+    treatment_prior_sd = 1.00,
     posterior_cutoff = 0.95) {
   covariance <- pilot_day5$covariance
   prior <- make_day5_prior(treatment_prior_sd)
   prior_precision <- solve(prior$covariance)
-  information <- matrix(0, 7, 7)
-  score <- numeric(7)
+  information <- matrix(0, 5, 5)
+  score <- numeric(5)
 
-  for (id_value in unique(long_data$id)) {
-    subject <- long_data[long_data$id == id_value, ]
-    subject <- subject[subject$observed, ]
-    indices <- subject$time_index
-    design <- matrix(0, nrow(subject), 7)
-    design[cbind(seq_len(nrow(subject)), indices)] <- 1
-    if (subject$treatment[1] == 1) {
-      post_baseline <- subject$time_index > 1
-      design[cbind(
-        which(post_baseline),
-        3 + subject$time_index[post_baseline]
-      )] <- 1
+  ids <- unique(long_data$id)
+  n_subjects <- length(ids)
+  ordered <- long_data[order(long_data$id, long_data$time_index), ]
+  values <- matrix(ordered$log_supar, nrow = n_subjects, byrow = TRUE)
+  observed <- matrix(ordered$observed, nrow = n_subjects, byrow = TRUE)
+  treatment <- ordered$treatment[seq(1, nrow(ordered), by = 4)]
+  pattern <- apply(observed, 1, paste0, collapse = "")
+
+  for (arm in 0:1) {
+    for (pattern_value in unique(pattern[treatment == arm])) {
+      subjects <- which(treatment == arm & pattern == pattern_value)
+      indices <- which(observed[subjects[1], ])
+      design <- matrix(0, length(indices), 5)
+      design[cbind(seq_along(indices), indices)] <- 1
+      if (arm == 1) design[indices > 1, 5] <- 1
+      inverse_covariance <- solve(covariance[indices, indices, drop = FALSE])
+      information <- information + length(subjects) *
+        crossprod(design, inverse_covariance %*% design)
+      summed_values <- colSums(values[subjects, indices, drop = FALSE])
+      score <- score +
+        crossprod(design, inverse_covariance %*% summed_values)[, 1]
     }
-    inverse_covariance <- solve(covariance[indices, indices, drop = FALSE])
-    information <- information +
-      crossprod(design, inverse_covariance %*% design)
-    score <- score +
-      crossprod(design, inverse_covariance %*% subject$log_supar)[, 1]
   }
 
   posterior_covariance <- solve(prior_precision + information)
   posterior_mean <- posterior_covariance %*%
     (prior_precision %*% prior$mean + score)
   delta_mean <- log_auc_delta_day5(drop(posterior_mean))
-  gradient <- numeric_gradient_day5(
+  # With one common post-baseline effect, Delta < 0 if and only if beta < 0.
+  # The posterior probability of benefit is therefore exact on the fitted
+  # Gaussian scale; no nonlinear delta-method decision approximation is used.
+  treatment_mean <- posterior_mean[5]
+  treatment_sd <- sqrt(posterior_covariance[5, 5])
+  probability_benefit <- pnorm(0, treatment_mean, treatment_sd)
+  delta_gradient <- numeric_gradient_day5(
     log_auc_delta_day5,
     drop(posterior_mean)
   )
   delta_sd <- sqrt(drop(crossprod(
-    gradient,
-    posterior_covariance %*% gradient
+    delta_gradient,
+    posterior_covariance %*% delta_gradient
   )))
-  probability_benefit <- pnorm(0, delta_mean, delta_sd)
 
   list(
     posterior_mean = delta_mean,
     posterior_sd = delta_sd,
+    posterior_treatment_mean = treatment_mean,
+    posterior_treatment_sd = treatment_sd,
     prob_benefit = probability_benefit,
     success = probability_benefit >= posterior_cutoff
   )
@@ -221,17 +230,20 @@ fit_day5_auc_bayes <- function(
 
 fit_day3_ancova_bayes <- function(
     long_data,
-    treatment_prior_sd = 0.50,
+    treatment_prior_sd = 1.00,
     posterior_cutoff = 0.95) {
-  observed <- long_data[long_data$observed, ]
-  baseline <- observed[observed$time_index == 1, c("id", "log_supar")]
-  names(baseline)[2] <- "baseline"
-  day3 <- observed[observed$time_index == 3, c(
-    "id", "treatment", "log_supar"
-  )]
-  names(day3)[3] <- "outcome"
-  analysis <- merge(day3, baseline, by = "id", all = FALSE)
-  analysis$baseline_c <- analysis$baseline - pilot_day5$mean[1]
+  ordered <- long_data[order(long_data$id, long_data$time_index), ]
+  ids <- unique(ordered$id)
+  n_subjects <- length(ids)
+  values <- matrix(ordered$log_supar, nrow = n_subjects, byrow = TRUE)
+  observed_matrix <- matrix(ordered$observed, nrow = n_subjects, byrow = TRUE)
+  treatment <- ordered$treatment[seq(1, nrow(ordered), by = 4)]
+  keep <- observed_matrix[, 1] & observed_matrix[, 3]
+  analysis <- data.frame(
+    treatment = treatment[keep],
+    baseline_c = values[keep, 1] - pilot_day5$mean[1],
+    outcome = values[keep, 3]
+  )
 
   design <- model.matrix(~ treatment + baseline_c, data = analysis)
   outcome <- analysis$outcome

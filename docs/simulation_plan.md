@@ -49,8 +49,8 @@ than an observed pilot estimate.
 The historical cohort contains no randomised dexamethasone comparison and does
 not provide prior evidence for treatment efficacy.
 
-- Each post-baseline log-scale treatment coefficient has prior
-  `Normal(0, 0.5^2)`.
+- One common post-baseline log-scale treatment coefficient has prior
+  `Normal(0, 1^2)`. This symmetric prior is centred on no treatment effect.
 - The treatment difference is constrained to zero at baseline.
 - Concurrent randomised controls estimate the control trajectory. The primary
   analysis does not borrow the historical control mean.
@@ -63,16 +63,19 @@ not provide prior evidence for treatment efficacy.
 Historical control-mean borrowing is a sensitivity analysis only. The selected
 robust mixture has 90% weak and 10% pilot-informed components, with the
 informative component capped at effective sample size 5. Fixed power-prior
-weights `a0 = 0.2, 0.4, 0.6` provide further sensitivities.
+weights `a0 = 0.2, 0.4, 0.6` provide further sensitivities. Borrowing applies
+only to observed pilot Days 0, 1 and 3; the projected Day-5 mean retains the
+weak primary prior.
 
 ## 4. Longitudinal analysis model
 
 The intended primary analysis is a Bayesian log-normal longitudinal
 mixed-effects model using actual elapsed sampling time. The mean trajectory is
-represented flexibly at Days 0, 1, 3 and 5, with treatment-by-time effects
-constrained to zero at baseline, site adjustment and a participant random
-intercept. A parsimonious continuous-time correlation structure accounts for
-within-participant dependence.
+represented flexibly at Days 0, 1, 3 and 5, with one common post-baseline
+treatment effect constrained to zero at baseline, site adjustment and a
+participant random intercept. A parsimonious continuous-time correlation
+structure accounts for within-participant dependence. Time-varying treatment
+effects will be examined in sensitivity analysis.
 
 Posterior marginal mean trajectories are integrated over Day 0--5 to obtain
 the AUC ratio. An individual complete-case trapezoidal AUC is not the intended
@@ -96,30 +99,40 @@ focused comparison with Day-3 ANCOVA.
 
 ## 6. Main operating-characteristic scenarios
 
-- total randomised N: 60, 70, 80, 90 and 100;
+- planned recruitment fixed at 90 participants (45 per arm), allowing for five
+  lost to follow-up per arm;
+- all randomised participants with at least one suPAR measurement contribute to
+  the longitudinal likelihood;
+- total participants contributing suPAR data in Panel A: 60, 70, 80 and 90,
+  with 80 used as the conservative design point;
 - true Day 0--5 AUC reduction: 0%, 15%, 20%, 25% and 30%;
 - immediate sustained treatment effect, never applied at baseline;
-- decision cut-off 0.95;
-- 10,000 simulations per Panel A cell;
-- 5,000 paired simulations per Panel B cell.
+- primary decision rule `P(Delta < 0 | data) >= 0.95`; every simulated power
+  and Type-I error estimate is the probability that this rule is met;
+- 20,000 simulations per Panel A cell;
+- 10,000 paired simulations per Panel B cell.
 
-The final historical-mean sensitivity uses 20,000 simulations per cell, control
-mean differences of -20%, 0% and +20%, and true reductions of 0% and 20%.
+The historical-mean sensitivity uses 20,000 paired simulations per scenario,
+post-baseline control-trajectory differences from -20% to +20%, and true
+reductions of 0% and 20%. Baseline is matched in this focused conflict scenario.
 
 ## 7. Planned displays
 
-The application figure contains two panels:
+The application figure contains four panels:
 
-1. power versus total randomised N for 15%, 20%, 25% and 30% AUC reductions;
+1. power versus total N contributing suPAR data for 15%, 20%, 25% and 30% AUC
+   reductions, with recruitment fixed at 90 and 80 as the conservative design
+   point;
 2. model-based AUC versus Day-3 ANCOVA under MCAR and two MAR mechanisms, with
-   Day-3 missingness up to 50%.
-
-Prior and historical-borrowing results are reported in text because their
-effects were small and do not justify additional application panels.
+   Day-3 missingness up to 50%;
+3. power under prespecified historical mean-borrowing sensitivities;
+4. Type-I error under historical-current post-baseline trajectory differences.
 
 ## 8. Reproducibility
 
-The final scripts use fixed seeds and save cell-level results with Monte Carlo
+The design simulation fixes the covariance at the pilot/projected value and is
+therefore an approximation rather than a simulation fit of the full final
+hierarchical model. The final scripts use fixed seeds and save cell-level results with Monte Carlo
 standard errors. Tests check positive definiteness, exact effect calibration,
 no treatment effect at baseline, recovery under large samples and successful
 analysis with missing Day-3 data.

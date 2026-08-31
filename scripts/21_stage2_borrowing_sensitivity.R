@@ -4,11 +4,12 @@ source("R/nuisance_borrowing_engine.R")
 
 n_sim <- 20000
 posterior_cutoff <- 0.95
-treatment_prior_sd <- 0.50
+treatment_prior_sd <- 1.00
 
 # The conjugate nuisance-prior engine fixes the treatment coefficient prior in
 # make_nuisance_prior(). This assertion prevents an unnoticed mismatch with the
-# prespecified Normal(0, 0.5^2) prior.
+# prespecified Normal(0, 1^2) prior. This script is retained as a legacy
+# summary-AUC sensitivity and is not used in the final four-panel figure.
 pilot_prior <- make_nuisance_prior("pilot_conservative")
 implied_treatment_sd <- sqrt(
   pilot_prior$coefficient_covariance_scale[2, 2]
@@ -37,7 +38,7 @@ results <- bind_rows(parallel::mclapply(
     result <- simulate_joint_borrowing_oc(
       n_sim = n_sim,
       seed = seed,
-      n_per_arm = 45,
+      n_per_arm = 40,
       reduction = row$reduction,
       current_control_drift = log(1 + row$drift_pct / 100),
       nuisance_prior_type = "pilot_conservative",

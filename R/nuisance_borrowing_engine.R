@@ -42,12 +42,12 @@ make_nuisance_prior <- function(
 
   # Parameter order: intercept, treatment, centred baseline, Kenya.
   coefficient_mean <- c(0, 0, settings$baseline_mean, 0)
-  coefficient_sd <- c(2.0, 0.50, settings$baseline_sd, 0.75)
+  coefficient_sd <- c(2.0, 1.00, settings$baseline_sd, 0.75)
 
   # Conditional prior: beta | sigma^2 ~ N(m0, sigma^2 V0).
   # Keep coefficient-prior strength comparable across nuisance-variance
   # scenarios. In particular, the treatment prior remains equivalent to
-  # N(0, 0.50^2) when sigma is at the pilot residual scale.
+  # N(0, 1.00^2) for the log-scale treatment coefficient.
   v0 <- diag((coefficient_sd / pilot_nuisance$residual_sd)^2)
 
   c(settings, list(

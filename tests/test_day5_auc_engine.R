@@ -9,8 +9,9 @@ stopifnot(
   ) < 1e-10
 )
 stopifnot(
-  abs(log_auc_delta_day5(c(pilot_day5$mean, 0, 0, 0))) < 1e-10
+  abs(log_auc_delta_day5(c(pilot_day5$mean, 0))) < 1e-10
 )
+stopifnot(identical(make_day5_prior()$covariance[5, 5], 1))
 
 calibrated_post <- calibrate_day5_effect(0.20, "immediate")
 calibrated_shift <- effect_vector_day5(calibrated_post, "immediate")
@@ -35,6 +36,16 @@ stopifnot(abs(diff(baseline_means$log_supar)) < 0.04)
 large_fit <- fit_day5_auc_bayes(large_trial)
 stopifnot(large_fit$prob_benefit > 0.99)
 stopifnot(large_fit$posterior_mean < 0)
+stopifnot(is.finite(large_fit$posterior_sd), large_fit$posterior_sd > 0)
+stopifnot(
+  is.finite(large_fit$posterior_treatment_mean),
+  is.finite(large_fit$posterior_treatment_sd),
+  large_fit$posterior_treatment_sd > 0
+)
+stopifnot(identical(
+  large_fit$success,
+  large_fit$prob_benefit >= 0.95
+))
 
 missing_trial <- simulate_day5_trial(
   n_per_arm = 45,

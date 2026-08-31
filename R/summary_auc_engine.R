@@ -32,7 +32,7 @@ make_prior_components <- function(
     method = c("none", "fixed", "robust"),
     historical_ess = 10,
     robust_weight = 0.50,
-    treatment_prior_sd = 0.50,
+    treatment_prior_sd = 1.00,
     historical_intercept = pilot_summary$mean_log_sauc,
     sigma = pilot_summary$residual_sd) {
   method <- match.arg(method)
@@ -152,7 +152,7 @@ fit_summary_bayes <- function(
     prior_method = c("none", "fixed", "robust"),
     historical_ess = 10,
     robust_weight = 0.50,
-    treatment_prior_sd = 0.50,
+    treatment_prior_sd = 1.00,
     historical_intercept = pilot_summary$mean_log_sauc,
     posterior_cutoff = 0.95,
     clinically_relevant_ratio = 0.80,

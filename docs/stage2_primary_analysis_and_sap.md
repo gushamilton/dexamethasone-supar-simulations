@@ -6,17 +6,18 @@ The primary analysis will estimate the effect of dexamethasone on pleural-fluid
 suPAR over time using a Bayesian longitudinal mixed-effects model. The model
 will use each participant's available measurements at their actual sampling
 times and will estimate the treatment contrast in model-based area under the
-curve (AUC). The treatment effect will be reported on the log scale and as the
-ratio of geometric mean AUCs. Evidence of benefit will be concluded when
-`P(treatment effect < 0 | trial data) >= 0.95`; we will also report the
-posterior probability of a clinically relevant reduction of at least 20%.
+curve (AUC). The treatment effect will be reported as
+`Delta = log(AUC_dexamethasone / AUC_control)`, where each AUC is the area under
+the relevant group-specific geometric-mean suPAR trajectory. The primary
+criterion for evidence that dexamethasone reduces suPAR AUC will be
+`P(Delta < 0 | trial data) >= 0.95`; we will also report the posterior
+probability of a clinically relevant reduction of at least 20%.
 
 We considered using the previous suPAR cohort to inform the concurrent control
-mean. In 20,000 simulations per scenario, the conservative ESS-capped robust
-mixture changed power by -1.4 to +1.6 percentage points when the current control
-mean differed by +/-20% from the pilot. More aggressive schemes produced gains
-of up to approximately 5 percentage points. Greater gains required stronger assumptions and were
-accompanied by increased type-I error, sensitivity to prior--data conflict,
+trajectory. In 20,000 simulations per scenario, conservative ESS-capped
+borrowing produced only a modest power gain when the historical and current
+controls were exchangeable. Greater apparent gains required stronger assumptions and were
+accompanied by Type-I error inflation under prior--data conflict,
 additional complexity, and uncertain exchangeability, particularly because the
 new trial includes both UK and Kenyan participants. We will therefore not
 borrow the historical control mean in the primary analysis. Concurrent
@@ -27,22 +28,24 @@ the association between baseline suPAR and subsequent AUC. These priors will be
 sufficiently dispersed to allow the trial data to dominate when the new cohort
 differs from the pilot cohort.
 
+The operating-characteristic simulations are a design-stage Gaussian
+approximation. They fix the covariance at the pilot value, with a prespecified
+projection for Day 5; the final analysis will estimate covariance parameters
+using the priors specified below.
+
 Historical control-mean borrowing will be restricted to prespecified
 sensitivity analyses. These will include a robust mixture or
 switch-commensurate prior capped at an effective sample size of five, and fixed
 power priors over a limited range of weights. Results will be presented with
-and without borrowing. This makes the primary conclusion depend only on the
+and without borrowing. Mean borrowing will use observed pilot Days 0, 1 and 3
+only; projected Day-5 information will not be borrowed. This makes the primary conclusion depend only on the
 randomized comparison while still showing whether cautious borrowing would
 materially alter the inference.
 
-Stress tests allowing the Kenyan cohort to have a different baseline
-distribution and adjusted control mean showed that these differences were
-absorbed by baseline adjustment and a fixed country effect. Higher Kenyan
-residual variability was more consequential: average power for a 20% AUC
-reduction fell from approximately 84% with equal variability to 76% and 67%
-when the Kenyan residual SD was 1.25 and 1.5 times the UK SD, respectively.
-Country-specific variance will therefore be examined in sensitivity analysis;
-these scenarios did not increase the value of historical mean borrowing.
+Potential UK--Kenya differences will be represented by prespecified fixed
+country/site terms. Country-specific residual variability will be examined in
+sensitivity analysis, and country-specific treatment contrasts will remain
+exploratory rather than carrying separate confirmatory decision rules.
 
 The longitudinal likelihood uses all observed suPAR measurements and naturally
 accommodates unequal sampling schedules and incomplete outcome vectors under a
@@ -65,16 +68,22 @@ as ordinary intermittent missingness.
   nuisance parameters but provides no direct post-randomization treatment
   contrast. The number with no post-randomization sample will be reported by
   arm, with a prespecified sensitivity analysis for this group.
+- Recruitment target: 90 participants (45 per arm), allowing for five lost to
+  follow-up per arm. The design operating characteristics conservatively use
+  40 contributing participants per arm, although every randomised participant
+  with at least one suPAR measurement enters the longitudinal likelihood.
 - Outcome window: Day 0 to Day 5, using actual elapsed time from randomization
   and sample collection.
-- Summary measure: model-based AUC of pleural-fluid suPAR over the outcome
-  window.
+- Summary measure: area under each group-specific model-based geometric-mean
+  pleural-fluid suPAR trajectory over the outcome window.
 - Treatment contrast: `Delta = log(AUC_dexamethasone / AUC_control)`, marginalized
   over the randomized trial's country/site distribution. Negative values favour
   dexamethasone.
 - Primary decision: evidence of benefit if `P(Delta < 0 | data) >= 0.95`.
 - Additional summaries: posterior median and 95% credible interval for Delta;
-  AUC ratio and percentage reduction; `P(Delta <= log(0.80) | data)`.
+  AUC ratio and percentage reduction; `P(Delta <= log(0.80) | data)`. The
+  supportive clinically relevant criterion is
+  `P(Delta <= log(0.80) | data) >= 0.90`; it is not a second primary rule.
 
 ### 2. Primary longitudinal model
 
@@ -83,9 +92,14 @@ as ordinary intermittent missingness.
 - Represent time flexibly using prespecified piecewise-linear terms or effects
   at the principal collection times, evaluated using actual elapsed sampling
   time.
-- Include treatment, time, and treatment-by-time terms, with no treatment
-  difference at the pre-randomization baseline by construction.
-- Adjust for baseline log suPAR and the randomization stratification variables.
+- Include flexible time effects and one common post-baseline treatment effect,
+  with no treatment difference at the pre-randomization baseline by
+  construction. Time-varying treatment effects will be assessed in sensitivity
+  analysis.
+- Include baseline in the longitudinal response and constrain the randomized
+  groups to have a common pre-randomization mean. Adjust for the randomization
+  stratification variables; do not also enter the same baseline measurement as
+  a separate covariate in the primary constrained longitudinal model.
 - Include country or site as a fixed effect. With only two countries and four
   hospitals, a random country effect is not reliably estimable. If site is
   included as a fixed effect, a separate country main effect is redundant.
@@ -101,16 +115,15 @@ as ordinary intermittent missingness.
 
 ### 3. Priors
 
-- Treatment effect: each post-baseline treatment coefficient has the fixed
-  zero-centred prior `Normal(0, 0.5^2)` on the log scale.
+- Treatment effect: the common post-baseline treatment coefficient has the
+  fixed zero-centred prior `Normal(0, 1^2)` on the log scale.
 - Control trajectory/mean: weakly informative priors in the primary analysis;
   no direct historical mean borrowing.
-- Residual and random-effect standard deviations: conservative, pilot-centred
-  priors with broad tails.
-- Correlation: conservative prior centred near the pilot estimate, with enough
-  dispersion to permit materially weaker or stronger correlation in the trial.
-- Baseline association: conservative prior centred on the pilot estimate, again
-  with broad uncertainty.
+- Residual and random-effect standard deviations: pilot-centred log-Normal
+  priors with log-scale SD 0.5.
+- Correlation: pilot-centred Normal priors on the Fisher-z scale with SD 0.5.
+- Baseline association: pilot-centred Normal prior on an unconstrained scale
+  with SD 0.5.
 - Prior predictive checks will be completed before unblinding and documented in
   the final SAP.
 
@@ -159,6 +172,8 @@ as ordinary intermittent missingness.
 7. Alternative covariance structure and country-specific residual variance.
 8. Conventional Day-3 baseline-adjusted analysis for comparison with the
    model-based AUC analysis.
+9. Time-varying treatment-by-time effects in place of the common post-baseline
+   effect.
 
 ### 7. DMC and interim/go-no-go decisions
 

@@ -1,0 +1,61 @@
+probability_success,mcse_success,approach,drift_pct,reduction,n_sim,n_per_arm,effect_shape,day3_day5_correlation,treatment_prior_sd,posterior_cutoff,decision_rule
+0.04825,0.0015152877202036584,No historical mean borrowing (primary),-20,0,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.0691,0.0017933932920583817,Robust mixture (10%; ESS cap 5),-20,0,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.06265,0.0017135486205532657,Switch-commensurate (ESS cap 5),-20,0,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.0731,0.0018406030261846251,Power prior a0 = 0.2,-20,0,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.1015,0.0021353893087678417,Power prior a0 = 0.4,-20,0,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.13575,0.0024220026579258743,Power prior a0 = 0.6,-20,0,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.79585,0.00285019979562837,No historical mean borrowing (primary),-20,0.2,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.8669,0.002401919961197708,Robust mixture (10%; ESS cap 5),-20,0.2,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.84695,0.002545836773047322,Switch-commensurate (ESS cap 5),-20,0.2,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.87765,0.0023171154211648584,Power prior a0 = 0.2,-20,0.2,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.93155,0.0017855615013210831,Power prior a0 = 0.4,-20,0.2,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.9594,0.0013955579529349538,Power prior a0 = 0.6,-20,0.2,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.04845,0.0015182654165197863,No historical mean borrowing (primary),-10,0,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.05545,0.001618259829261049,Robust mixture (10%; ESS cap 5),-10,0,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.05285,0.0015820378867144745,Switch-commensurate (ESS cap 5),-10,0,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.05655,0.0016332804030539277,Power prior a0 = 0.2,-10,0,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.0654,0.0017481824847538085,Power prior a0 = 0.4,-10,0,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.07465,0.0018584587364265045,Power prior a0 = 0.6,-10,0,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.77565,0.0029497209825676734,No historical mean borrowing (primary),-10,0.2,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.82635,0.0026785787042758326,Robust mixture (10%; ESS cap 5),-10,0.2,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.8132,0.002755955006889626,Switch-commensurate (ESS cap 5),-10,0.2,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.8353,0.0026227267299511014,Power prior a0 = 0.2,-10,0.2,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.87785,0.002315484587510787,Power prior a0 = 0.4,-10,0.2,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.90745,0.00204920103332982,Power prior a0 = 0.6,-10,0.2,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.04925,0.0015301051842928968,No historical mean borrowing (primary),0,0,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.04595,0.0014805167594458362,Robust mixture (10%; ESS cap 5),0,0,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.04735,0.001501798546743204,Switch-commensurate (ESS cap 5),0,0,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.04545,0.001472825473367432,Power prior a0 = 0.2,0,0,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.04205,0.0014191863425921205,Power prior a0 = 0.4,0,0,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.04005,0.0013864702935872807,Power prior a0 = 0.6,0,0,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.7565,0.0030348620232228023,No historical mean borrowing (primary),0,0.2,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.779,0.0029339308103634616,Robust mixture (10%; ESS cap 5),0,0.2,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.7732,0.002961095743132937,Switch-commensurate (ESS cap 5),0,0.2,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.7828,0.0029156831103533867,Power prior a0 = 0.2,0,0.2,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.806,0.0027961044329566803,Power prior a0 = 0.4,0,0.2,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.8247,0.002688586152608839,Power prior a0 = 0.6,0,0.2,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.04975,0.0015374481698580932,No historical mean borrowing (primary),10,0,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.0377,0.0013468242275813129,Robust mixture (10%; ESS cap 5),10,0,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.04045,0.0013930864563981664,Switch-commensurate (ESS cap 5),10,0,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.0366,0.0013277883867544558,Power prior a0 = 0.2,10,0,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.02725,0.001151247964167581,Power prior a0 = 0.4,10,0,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.02155,0.0010267813180030107,Power prior a0 = 0.6,10,0,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.74945,0.003064104253285126,No historical mean borrowing (primary),10,0.2,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.7464,0.0030764186971217037,Robust mixture (10%; ESS cap 5),10,0.2,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.74685,0.003074614427046097,Switch-commensurate (ESS cap 5),10,0.2,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.74615,0.003077419190653103,Power prior a0 = 0.2,10,0.2,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.7426,0.003091482168798649,Power prior a0 = 0.4,10,0.2,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.73875,0.0031064323387126913,Power prior a0 = 0.6,10,0.2,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.0486,0.0015204939986727998,No historical mean borrowing (primary),20,0,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.0325,0.0012538690122975366,Robust mixture (10%; ESS cap 5),20,0,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.0363,0.001322541303702837,Switch-commensurate (ESS cap 5),20,0,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.02985,0.0012033074731754973,Power prior a0 = 0.2,20,0,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.0177,9.323816278756248e-4,Power prior a0 = 0.4,20,0,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.0116,7.571472776151282e-4,Power prior a0 = 0.6,20,0,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.74155,0.0030955903919931004,No historical mean borrowing (primary),20,0.2,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.7107,0.0032062868711330247,Robust mixture (10%; ESS cap 5),20,0.2,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.71935,0.0031771494889287154,Switch-commensurate (ESS cap 5),20,0.2,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.70545,0.003223277039753176,Power prior a0 = 0.2,20,0.2,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.6727,0.003317941455179702,Power prior a0 = 0.4,20,0.2,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95
+0.6416,0.003390792237811099,Power prior a0 = 0.6,20,0.2,20000,40,immediate sustained,0.8,1,0.95,P(Delta < 0 | data) >= 0.95

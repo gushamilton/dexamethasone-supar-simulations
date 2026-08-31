@@ -3,11 +3,13 @@ library(patchwork)
 
 source("R/day5_auc_engine.R")
 
-n_sim_panel_a <- 10000
-n_sim_panel_b <- 5000
+n_sim_panel_a <- as.integer(Sys.getenv("N_SIM_PANEL_A", unset = "20000"))
+n_sim_panel_b <- as.integer(Sys.getenv("N_SIM_PANEL_B", unset = "10000"))
 posterior_cutoff <- 0.95
-treatment_prior_sd <- 0.50
+treatment_prior_sd <- 1.00
 central_auc_reduction <- 0.20
+contributing_n_per_arm <- 40
+decision_rule <- "P(Delta < 0 | data) >= 0.95"
 
 run_rows <- function(grid, fun) {
   rows <- split(grid, seq_len(nrow(grid)))
@@ -26,11 +28,9 @@ simulate_complete_day5_auc <- function(
   set.seed(seed)
   covariance <- pilot_day5$covariance
   inverse_covariance <- solve(covariance)
-  control_design <- cbind(diag(4), matrix(0, 4, 3))
+  control_design <- cbind(diag(4), 0)
   treatment_design <- control_design
-  treatment_design[2, 5] <- 1
-  treatment_design[3, 6] <- 1
-  treatment_design[4, 7] <- 1
+  treatment_design[2:4, 5] <- 1
 
   prior <- make_day5_prior(treatment_prior_sd)
   prior_precision <- solve(prior$covariance)
@@ -72,16 +72,10 @@ simulate_complete_day5_auc <- function(
       prior_precision %*% prior$mean + score
     )
     estimate[simulation] <- log_auc_delta_day5(posterior_mean)
-    gradient <- numeric_gradient_day5(
-      log_auc_delta_day5,
-      posterior_mean
-    )
-    posterior_sd <- sqrt(drop(crossprod(
-      gradient,
-      posterior_covariance %*% gradient
-    )))
+    treatment_mean <- posterior_mean[5]
+    treatment_sd <- sqrt(posterior_covariance[5, 5])
     success[simulation] <-
-      pnorm(0, estimate[simulation], posterior_sd) >= posterior_cutoff
+      pnorm(0, treatment_mean, treatment_sd) >= posterior_cutoff
   }
 
   true_delta <- log(1 - target_auc_reduction)
@@ -92,12 +86,18 @@ simulate_complete_day5_auc <- function(
       probability_success * (1 - probability_success) / n_sim
     ),
     bias_delta = mean(estimate) - true_delta,
-    n_sim = n_sim
+    n_sim = n_sim,
+    n_per_arm = n_per_arm,
+    effect_shape = "immediate sustained",
+    day3_day5_correlation = pilot_day5$projected_day3_day5_correlation,
+    treatment_prior_sd = treatment_prior_sd,
+    posterior_cutoff = posterior_cutoff,
+    decision_rule = decision_rule
   )
 }
 
 grid_a <- crossing(
-  total_n = seq(60, 100, by = 10),
+  total_n = seq(60, 90, by = 10),
   reduction = c(0, .15, .20, .25, .30)
 )
 
@@ -121,7 +121,7 @@ simulate_both_day5_endpoints <- function(
 
   for (simulation in seq_len(n_sim)) {
     trial <- simulate_day5_trial(
-      n_per_arm = 45,
+      n_per_arm = contributing_n_per_arm,
       target_auc_reduction = central_auc_reduction,
       effect_shape = "immediate",
       missing_mechanism = missing_mechanism,
@@ -150,7 +150,14 @@ simulate_both_day5_endpoints <- function(
     probability_success = probabilities,
     mcse_success = sqrt(probabilities * (1 - probabilities) / n_sim),
     achieved_day3_missingness = mean(achieved_missing),
-    n_sim = n_sim
+    n_sim = n_sim,
+    n_per_arm = contributing_n_per_arm,
+    target_auc_reduction = central_auc_reduction,
+    effect_shape = "immediate sustained",
+    day3_day5_correlation = pilot_day5$projected_day3_day5_correlation,
+    treatment_prior_sd = treatment_prior_sd,
+    posterior_cutoff = posterior_cutoff,
+    decision_rule = decision_rule
   )
 }
 
@@ -164,17 +171,38 @@ if (
   file.exists(missingness_output) &&
     Sys.getenv("RERUN_DAY5_MISSINGNESS", unset = "0") != "1"
 ) {
-  result_b <- read_csv(missingness_output, show_col_types = FALSE)
+  cached_b <- read_csv(missingness_output, show_col_types = FALSE)
+  cache_matches <- all(c(
+    "n_sim", "n_per_arm", "target_auc_reduction", "effect_shape",
+    "day3_day5_correlation", "treatment_prior_sd", "posterior_cutoff",
+    "decision_rule"
+  ) %in% names(cached_b)) &&
+    all(cached_b$n_sim == n_sim_panel_b) &&
+    all(cached_b$n_per_arm == contributing_n_per_arm) &&
+    all(cached_b$target_auc_reduction == central_auc_reduction) &&
+    all(cached_b$effect_shape == "immediate sustained") &&
+    all(cached_b$day3_day5_correlation ==
+      pilot_day5$projected_day3_day5_correlation) &&
+    all(cached_b$treatment_prior_sd == treatment_prior_sd) &&
+    all(cached_b$posterior_cutoff == posterior_cutoff) &&
+    all(cached_b$decision_rule == decision_rule)
+  if (cache_matches) {
+    result_b <- cached_b
+  } else {
+    result_b <- run_rows(grid_b, function(row, index) {
+      simulate_both_day5_endpoints(
+        n_sim = n_sim_panel_b,
+        seed = 210000 + round(100 * row$day3_missing_rate),
+        missing_mechanism = row$missing_mechanism,
+        day3_missing_rate = row$day3_missing_rate
+      )
+    })
+  }
 } else {
   result_b <- run_rows(grid_b, function(row, index) {
     simulate_both_day5_endpoints(
       n_sim = n_sim_panel_b,
-      seed = 210000 +
-        1000 * match(
-          row$missing_mechanism,
-          c("mcar", "mar_improvement", "mar_deterioration")
-        ) +
-        round(100 * row$day3_missing_rate),
+      seed = 210000 + round(100 * row$day3_missing_rate),
       missing_mechanism = row$missing_mechanism,
       day3_missing_rate = row$day3_missing_rate
     )
@@ -201,12 +229,12 @@ panel_a <- result_a |>
   geom_line(linewidth = .9) +
   geom_point(size = 2.1) +
   coord_cartesian(ylim = c(0, 1)) +
-  scale_x_continuous(breaks = seq(60, 100, 10)) +
+  scale_x_continuous(breaks = seq(60, 90, 10)) +
   scale_y_continuous(labels = scales::label_percent(accuracy = 1)) +
   labs(
     title = "A. Power under different treatment effects",
-    subtitle = "Day 0-5 model-based AUC; concurrent randomised controls",
-    x = "Total randomised N",
+    subtitle = "Recruitment fixed at N=90; conservative analysis basis N=80",
+    x = "Participants contributing suPAR data (total N)",
     y = "Bayesian power",
     colour = "True AUC reduction"
   ) +
@@ -238,7 +266,7 @@ panel_b <- result_b |>
   scale_y_continuous(labels = scales::label_percent(accuracy = 1)) +
   labs(
     title = "B. Robustness when Day-3 samples are missing",
-    subtitle = "20% AUC reduction; total N = 90",
+    subtitle = "20% AUC reduction; conservative contributing N = 80",
     x = "Achieved Day-3 missingness (%)",
     y = "Bayesian power",
     colour = "Missingness mechanism",
@@ -261,12 +289,13 @@ figure <- figure + plot_annotation(
   title = "Dexamethasone-suPAR trial: primary operating characteristics",
   subtitle = paste0(
     "Decision rule: P(treatment reduces AUC | data) >= 0.95; ",
-    "treatment prior N(0, 0.5^2); no historical control-mean borrowing"
+    "common post-baseline treatment effect prior N(0, 1^2); no historical control-mean borrowing"
   ),
   caption = paste0(
-    "Panel A: 10,000 simulations/cell. Panel B: 5,000 paired ",
+    "Panel A: ", scales::comma(n_sim_panel_a),
+    " simulations/cell. Panel B: ", scales::comma(n_sim_panel_b), " paired ",
     "simulations/cell.\nFocused loss of the Day-3 sample with Days 0, 1 ",
-    "and 5 retained. Day-5 covariance is a conservative projection from ",
+    "and 5 retained. Day-5 covariance is a prespecified projection from ",
     "the Day 0-3 pilot. Immediate sustained effect. Dotted lines denote ",
     "80% power."
   ),
@@ -290,6 +319,6 @@ ggsave(
 )
 
 print(result_a |>
-  filter(total_n == 90) |>
+  filter(total_n == 80) |>
   dplyr::select(total_n, reduction, probability_success, mcse_success))
 print(result_b, n = Inf)
