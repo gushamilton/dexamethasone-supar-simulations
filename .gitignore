@@ -1,0 +1,20 @@
+.DS_Store
+.Rhistory
+.RData
+Rplots.pdf
+.Rproj.user/
+
+# Do not commit participant-level source data or credentials.
+data/raw/
+*.sav
+*.xlsx
+*.xls
+.env
+
+# Generated temporary files; selected final outputs may be committed explicitly.
+tmp/
+
+# Internal application drafts and rendered QA are not part of the public
+# simulation repository.
+deliverables/
+qa/
